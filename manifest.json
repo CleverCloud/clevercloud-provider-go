@@ -1,0 +1,18 @@
+{
+    "id": "addon-name",
+    "name": "Addon Name",
+    "api": {
+      "config_vars": [ "ADDON_NAME_MY_VAR" ],
+      "regions": [ "eu" ],
+      "password": "44ca82ddf8d4e74d52494ce2895152ee",
+      "sso_salt": "fcb5b3add85d65e1dddda87a115b429f",
+      "production": {
+        "base_url": "https://yourservice.com/clevercloud/resources",
+        "sso_url": "https://yourservice.com/clevercloud/sso/login"
+      },
+      "test": {
+        "base_url": "http://localhost:9000/clevercloud/resources",
+        "sso_url": "http://localhost:9000/clevercloud/sso/login"
+      }
+    }
+  }
