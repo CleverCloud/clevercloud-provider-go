@@ -1,9 +1,12 @@
 package provider
 
 import (
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"net/http"
-	"path"
+	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
@@ -21,7 +24,10 @@ func NewRunner(cfg *Config, provider AddonProvider, opts ...runnerOpt) *Runner {
 		cfg:      cfg,
 		provider: provider,
 		port:     8080,
+		server:   echo.New(),
 	}
+
+	r.server.HideBanner = true
 
 	for _, opt := range opts {
 		opt(r)
@@ -31,16 +37,19 @@ func NewRunner(cfg *Config, provider AddonProvider, opts ...runnerOpt) *Runner {
 }
 
 func (r *Runner) Run() error {
+	logrus.Debugf("Config: %+v", r.cfg)
 
-	basePath := path.Base(r.cfg.API.Production.BaseURL)
-	logrus.Infof("path: %s", basePath)
+	// TODO: VALIDATE CONFIG ?
+	// "config_vars." + var, var.toUpperCase(), id.toUpperCase().replaceAll("-", "_"));
 
-	r.server = echo.New()
-	r.server.HideBanner = true
+	resourcePath := basePath(r.cfg.API.Production.BaseURL)
+	ssoPath := basePath(r.cfg.API.Production.SSOUrl)
+	logrus.Infof("resource path: %s, SSO path: %s", resourcePath, ssoPath)
 
-	r.server.POST("/", r.provision)
-	r.server.PUT("/:addonId", r.planChange)
-	r.server.DELETE("/:addonId", r.deprovision)
+	r.server.POST(resourcePath, r.provision)
+	r.server.PUT(resourcePath+"/:addonId", r.planChange)
+	r.server.DELETE(resourcePath+"/:addonId", r.deprovision)
+	r.server.POST(ssoPath, r.ssoAuth)
 
 	logrus.Infof("running provider: '%s'...", r.cfg.Name)
 
@@ -103,4 +112,59 @@ func (r *Runner) deprovision(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (r *Runner) ssoAuth(c echo.Context) error {
+	ctx := c.Request().Context()
+	addonID := c.FormValue("id")
+	token := c.FormValue("token")
+	timestamp := c.FormValue("timestamp")
+	navData := c.FormValue("nav-data")
+	email := c.FormValue("email")
+
+	logrus.Debugf("SSO: %+v", map[string]string{
+		"id":        addonID,
+		"token":     token,
+		"timestamp": timestamp,
+		"nav":       navData,
+		"email":     email,
+	})
+
+	if tokenSignature(addonID, r.cfg.API.SSOSalt, timestamp) != token {
+		return c.JSON(http.StatusUnauthorized, "invalid token")
+	}
+
+	ts, err := strconv.ParseInt(timestamp, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "invalid timestamp")
+	}
+
+	if isOutdated(ts) {
+		return c.JSON(http.StatusInternalServerError, "request outdated, please resign it")
+	}
+
+	req := SSORequest{UserEmail: email, AddonID: addonID}
+
+	res, err := r.provider.SSO(ctx, req)
+	if err != nil {
+		// SeeOther because, we want to move from a POST to a GET
+		// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/303
+		return c.JSON(http.StatusSeeOther, err.Error())
+	}
+
+	c.SetCookie(res.Cookie)
+	return c.Redirect(http.StatusFound, res.URL.String())
+}
+
+func isOutdated(timestamp int64) bool {
+	t := time.UnixMilli(timestamp * 1000)
+	now := time.Now()
+	return now.Sub(t) > 15*time.Minute
+}
+
+func tokenSignature(addonID, salt, timestamp string) string {
+	hash := sha1.New()
+	hash.Write([]byte(addonID + ":" + salt + ":" + timestamp))
+
+	return hex.EncodeToString(hash.Sum(nil))
 }

@@ -21,6 +21,9 @@ func (p *P) DeProvisionAddon(ctx context.Context, req provider.DeProvisionReq) e
 func (p *P) PlanChange(ctx context.Context, req provider.PlanChangeReq) (*provider.PlanChangeRes, error) {
 	return nil, nil
 }
+func (p *P) SSO(ctx context.Context, req provider.SSORequest) (*provider.SSOResponse, error) {
+	return nil, nil
+}
 
 func TestRun(t *testing.T) {
 

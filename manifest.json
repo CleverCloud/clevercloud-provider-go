@@ -11,8 +11,8 @@
         "sso_url": "https://yourservice.com/clevercloud/sso/login"
       },
       "test": {
-        "base_url": "http://localhost:9000/clevercloud/resources",
-        "sso_url": "http://localhost:9000/clevercloud/sso/login"
+        "base_url": "https://localhost:9000/clevercloud/resources",
+        "sso_url": "https://localhost:9000/clevercloud/sso/login"
       }
     }
   }

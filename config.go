@@ -14,7 +14,7 @@ type Config struct {
 
 type ConfigAPI struct {
 	ConfigVars []string          `json:"config_vars"`
-	Regions    []string          `json:"region"`
+	Regions    []string          `json:"regions"`
 	Password   string            `json:"password"`
 	SSOSalt    string            `json:"sso_salt"`
 	Production ConfigAPIEndpoint `json:"production"`
