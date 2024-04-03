@@ -10,16 +10,17 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
+	"go.clever-cloud.dev/provider/config"
 )
 
 type Runner struct {
-	cfg      *Config
+	cfg      *config.Config
 	provider AddonProvider
 	port     int
 	server   *echo.Echo
 }
 
-func NewRunner(cfg *Config, provider AddonProvider, opts ...runnerOpt) *Runner {
+func NewRunner(cfg *config.Config, provider AddonProvider, opts ...runnerOpt) *Runner {
 	r := &Runner{
 		cfg:      cfg,
 		provider: provider,

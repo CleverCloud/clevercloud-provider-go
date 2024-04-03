@@ -7,6 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	provider "go.clever-cloud.dev/provider"
+	"go.clever-cloud.dev/provider/config"
 )
 
 type P struct {
@@ -29,7 +30,7 @@ func TestRun(t *testing.T) {
 
 	p := &P{}
 
-	r := provider.NewRunner(&provider.Config{}, p)
+	r := provider.NewRunner(&config.Config{}, p)
 
 	go func() {
 		if err := r.Run(); err != nil {

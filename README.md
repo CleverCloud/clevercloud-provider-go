@@ -71,6 +71,18 @@ clever-tools deploy
 
 > Don't forget to add a vhost (domain) on your app
 
+## Addon provider client
+
+As an addon provider you can perform several actions on the CleverCloud API
+
+```golang
+c := client.New(cfg)
+
+c.ListAddons(ctx context.Context) ([]Addon, error)
+c.GetAddon(ctx context.Context, addonID string) (*AddonInfo, error)
+c.UpdateEnvironment(ctx context.Context, addonID string, environment map[string]string) error
+
+```
 
 ## Useful commands
 

@@ -11,16 +11,38 @@ import (
 	"github.com/oklog/ulid/v2"
 	"github.com/sirupsen/logrus"
 	"go.clever-cloud.dev/provider"
+	"go.clever-cloud.dev/provider/client"
+	"go.clever-cloud.dev/provider/config"
 )
 
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
 
-	cfg, err := provider.ConfigFromFile("./manifest.json")
+	cfg, err := config.ConfigFromFile("./manifest.json")
 	if err != nil {
 		panic(err)
 	}
 
+	// Exemple of client usage
+	c := client.New(cfg)
+	addons, err := c.ListAddons(context.Background())
+	if err != nil {
+		logrus.WithError(err).Fatal("cannot list addons")
+	}
+	logrus.Infof("ADDONS: %+v", addons)
+
+	info, err := c.GetAddon(context.Background(), addons[0].AddonID)
+	if err != nil {
+		logrus.WithError(err).Fatal("cannot get addons")
+	}
+	logrus.Infof("ADDONS: %+v", info)
+
+	err = c.UpdateEnvironment(context.Background(), info.ID, map[string]string{"MY_ENV": "TEST"})
+	if err != nil {
+		logrus.WithError(err).Fatal("cannot get addons")
+	}
+
+	// Let's configure our provider
 	p := &Provider{}
 
 	runner := provider.NewRunner(
