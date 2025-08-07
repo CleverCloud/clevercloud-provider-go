@@ -1,7 +1,7 @@
 # Provider SDK
 
 > This libray help you building a Clevercloud addon provider
-> more informations on the [documentation](https://developers.clever-cloud.com/doc/extend/add-ons-api/)
+> more informations on the [documentation](https://www.clever.cloud/developers/doc/marketplace/#add-on-infos-api)
 
 ## Setup a new addon provider
 
